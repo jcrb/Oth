@@ -1,0 +1,151 @@
+---
+title: "Végétariennes et grossesse"
+author: "JcB & Sarah Orth"
+date: "21/02/2016"
+output: word_document
+---
+
+Le ficher _resultats abreges revus2.csv_ est le plus lisible mais il manque 3 colonnes pour mesurer les connaissances.
+
+Le fichier _resultats4.csv_ est le plus complet mais recodé en 1 et 2 ce qui le rend moins lisible.
+```{r, echo=FALSE, comment=""}
+file <- "../Data/resultats4.csv"
+d <- read.csv(file)
+str(d)
+
+```
+
+TDSF (Mode d'exercice)
+
+```{r, echo=FALSE, comment=""}
+summary(d$TDSF)
+```
+
+Ancienneté
+----------
+```{r, echo=FALSE, comment=""}
+summary(d$NBX)
+```
+
+Question 4
+============
+
+Les sages-femmes ayant répondu qu'elles n'avaient pas rencontrées de femmes végétariennes durant les deux dernières années sont-elles significativement plus nombreuses à ne pas demander si la femme suit un régime particuliers comparé à celles qui en ont rencontré 5 ou plus ?
+
+- nombre de femmes végétariennes rencontrées (NBFVR)
+
+```{r, echo=FALSE, comment=""}
+table(d$NBFVR)
+
+```
+
+- interrogatoire sur le régime alimentaire (PRA)
+```{r, echo=FALSE, comment=""}
+table(d$PRA)
+
+```
+
+- combinaison des deux questions:
+```{r, echo=FALSE, comment=""}
+t <- table(d$NBFVR, d$PRA)
+t
+
+```
+
+On combine la première et la dernière ligne et on analyse le tableau avec le test de Fischer avec cette hypothèse: les SF qui n'ont pas rencontré de végétariennes et qui n'interrogent pas les mères sur leur régime alimentaire sont aussi nombreuses que les SF qui ont rencontrées 5 végétariennes ou plus sans les interroger sur leur régime alimentaire. Le test de Fischer calcule la probabilité que cette hypothèse soit vraie. Si la probabilité calculée est inférieure à 5% (<=> à p < 0.05) on rejette cette hypothèse et on retient l'hypothèse alternative: les SF qui voient 5 végétariennes ou plus, les interrogent plus fréquemment sur leur régime alimentaire que le le font les SF qui n'en voient pas. Si p > ou = à 0.05, on ne peut pas rejeter l'hypothèse de départ.
+```{r, echo=FALSE, comment=""}
+t1 <- t[1,]
+t2 <- t[6,]
+t3 <- rbind(t1, t2)
+t3
+fisher.test(t3)
+
+```
+
+La probabilité __`r fisher.test(t3)$p.value`__ est supérieure à 0.05. On ne peut pas rejeter l'hypothèse que les SF interrogent peu les mères sur leur régime alimentaire quelque soit le nombre de végétariennes vues au cours des deux années précédantes.
+
+Celà dit, on voit que 50% des SF qui voient beaucoup de végétariennes, posent la question du régime alimentaire. D'autre part 0.08 nest pas loin de 0.05 et on peut penser qu'un effectif plus important aurait pu conclure à une différence significative.
+
+Cette hypothèse se confirme si on forme 2 groupes: moins de 5 végétarienne et 5 ou plus:
+
+```{r, echo=FALSE, comment=""}
+t1 <- t[1:5,]
+t1 <- apply(t1, 2, sum)
+
+t2 <- t[6,]
+t3 <- rbind(t1, t2)
+rownames(t3) <- c("moins de 5 Végétariennes", "5 végétariennes ou plus")
+t3
+fisher.test(t3)
+
+```
+
+On est à la limite de la significativité p = __`r fisher.test(t3)$p.value`__.
+
+Question 1 - 3
+==========
+
+J'ai recodé mon tableau excel, avec 1=oui, 2=non.
+J'ai aussi rajouté des cases dans mon tableau:
+
+- La colonne U (CON) : le "1" signifie que les sages-femmes ont de bonnes connaissances concernant la question 8, le "2" signifie qu'elles n'en ont pas de très bonnes (il fallait qu'elles aient au moins 3 bonnes réponses dans les réponses justes et moins de 3 mauvaises réponses cochés)
+
+```{r, echo=FALSE, comment=""}
+a <- as.integer(d$CON)
+b <- factor(a, levels = c(1,2), labels = c("BONNE", "MAUVAISE"))
+t <- table(b, d$NBX)
+t
+chisq.test(t)
+
+```
+
+- La colonne "AG" (CONVIT): idem, mais là c'est pour la question 10
+
+```{r, echo=FALSE, comment=""}
+a <- as.integer(d$CONVIT)
+b <- factor(a, levels = c(1,2), labels = c("BONNE", "MAUVAISE"))
+t <- table(b, d$NBX)
+t
+chisq.test(t)
+```
+
+Réponse: NON
+
+- La colonne "AL" (CONCROI)
+```{r, echo=FALSE, comment=""}
+a <- as.integer(d$CONCROI)
+b <- factor(a, levels = c(1,2), labels = c("BONNE", "MAUVAISE"))
+t <- table(b, d$NBX)
+t
+chisq.test(t)
+```
+Réponse: NON
+
+Les sages-femmes possédant une formation sur l'allaitement ont-elles de meilleures connaissances que celles qui n'en ont pas ?
+```{r, echo=FALSE, comment=""}
+t <- table(b, d$X3.FORMA)
+t
+chisq.test(t)
+
+```
+
+Réponse: NON
+
+Les sages-femmes possédant une formation sur la diététique ont-elles de meilleures connaissances que celles qui n'en ont pas ?
+```{r, echo=FALSE, comment=""}
+t <- table(b, d$FORMD)
+t
+chisq.test(t)
+
+```
+
+Réponse: NON
+
+Entre les sages-femmes libérales, de PMI et hospitalières, y a-t'il aussi un différences significative concernant leur connaissances ?
+```{r, echo=FALSE, comment=""}
+t <- table(b, d$TDSF)
+t
+fisher.test(t)
+
+```
+Réponse: NON
